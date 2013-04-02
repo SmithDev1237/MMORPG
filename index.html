@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="scripts/jQuery.js"></script>
+    <script src="scripts/pathfinding-browser.js"></script>
+    <script src="scripts/sprite.js"></script>
+    <title>Untitled Page</title>
+</head>
+<body>
+    <canvas width="1000px" height="1000px" id="cnvGame" style="margin:50px; cursor:none"></canvas>
+    <script>
+
+        var timer = new Timer();
+        var playerSprite = [];
+        var batSprite = [];
+        playerSprite.push(new Sprite("images/player.png", 32, 32, 0, 0, 3, 200));
+        playerSprite.push(new Sprite("images/player.png", 32, 32, 0, 32, 3, 200));
+        playerSprite.push(new Sprite("images/player.png", 32, 32, 0, 64, 3, 200));
+        playerSprite.push(new Sprite("images/player.png", 32, 32, 0, 96, 3, 200));
+        batSprite.push(new Sprite("images/bat.png", 32, 32, 0, 0, 3, 500));
+        batSprite.push(new Sprite("images/bat.png", 32, 32, 0, 32, 3, 500));
+        batSprite.push(new Sprite("images/bat.png", 32, 32, 0, 64, 3, 500));
+        batSprite.push(new Sprite("images/bat.png", 32, 32, 0, 96, 3, 500));
+        var lava = new Sprite("images/sprites.png", 16, 16, 0, 16,3,5000);
+        //var lava = new Sprite("images/sum.png", 16, 16, 80, 16,0,0);
+        var bricks = new Sprite("images/bricks.bmp", 16, 16, 0, 0, 1, 0);
+        var grass = new Sprite("images/grass.bmp", 16, 16, 0, 0, 1, 0);
+        //var grass = new Sprite("images/sum.png", 16, 16, 336, 16, 1, 0);
+        var tree1 = new Sprite("images/tree.png", 16, 16, 0, 0, 1, 0);
+        var tree2 = new Sprite("images/tree.png", 16, 16, 16, 0, 1, 0);
+        var tree3 = new Sprite("images/tree.png", 16, 16, 32, 0, 1, 0);
+        var tree4 = new Sprite("images/tree.png", 16, 16, 48, 0, 1, 0);
+
+        var pointerPos = 0;
+        var pointers = [];
+        pointers.push(new Sprite("images/pointer.png", 32, 32, 0, 0, 1, 0));
+        pointers.push(new Sprite("images/sword.png", 32, 32, 0, 0, 1, 0));        
+
+        var spriteMap = [];
+        spriteMap.push([1,bricks]);
+        spriteMap.push([2,lava]);
+        spriteMap.push([3,tree1]);
+        spriteMap.push([4,tree2]);
+        spriteMap.push([5,tree3]);
+        spriteMap.push([6,tree4]);
+
+        
+        var pathMatrix = [];
+        var matrix = [
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 5, 6, 5, 6, 5, 6, 5, 6, 5, 6, 5, 6, 5, 6, 5, 6, 5, 6, 5, 6, 5, 6, 5, 6, 5, 6, 5, 6, 5, 6, 5, 6, 5, 6, 5, 6, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 4, 3, 4, 3, 4, 3, 4, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 6, 5, 6, 5, 6, 5, 6, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 3, 4, 3, 4, 3, 4, 3, 4, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 5, 6, 5, 6, 5, 6, 5, 6, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 3, 4, 3, 4, 3, 4, 3, 4, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 5, 6, 5, 6, 5, 6, 5, 6, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 4, 3, 4, 3, 4, 3, 4, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 6, 5, 6, 5, 6, 5, 6, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 3, 4, 3, 4, 3, 4, 3, 4, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 5, 6, 5, 6, 5, 6, 5, 6, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 3, 4, 3, 4, 3, 4, 3, 4, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 6, 5, 6, 5, 6, 5, 6, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 4, 3, 4, 3, 4, 3, 4, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 6, 5, 6, 5, 6, 5, 6, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 , 0, 0, 0, 0, 0, 0, 0, 0, 1]
+        ]; 
+
+        var player = new Player();
+        player.name = "Martin";
+        player.level = 6;
+        player.x = 16;
+        player.y = 16;
+
+        var enemyList = [];
+        var bat1 = new Enemy();
+        bat1.name = "Super Bat";
+        bat1.level = 3;
+        bat1.x = 200;
+        bat1.y = 100;
+        bat1.sprites = batSprite;
+
+        var bat2 = new Enemy();
+        bat2.name = "Super Bat";
+        bat2.level = 2;
+        bat2.x = 350;
+        bat2.y = 400;
+        bat2.sprites = batSprite;
+
+        var bat3 = new Enemy();
+        bat3.name = "Super Bat";
+        bat3.level = 2;
+        bat3.x = 650;
+        bat3.y = 300;
+        bat3.sprites = batSprite;
+
+        enemyList.push(bat1);
+        enemyList.push(bat2);
+        enemyList.push(bat3);
+
+        var mapwidth = matrix[0].length;
+        var mapHeight = matrix.length;
+
+        pathMatrix = CreatePathmatrix(matrix); 
+
+        var grid = new PF.Grid(mapwidth, mapHeight, pathMatrix);
+        var finder = new PF.AStarFinder();
+        finder.allowDiagonal = true;
+        finder.dontCrossCorners = true;
+        var pathPlayer = [];        
+        var count = 0;  
+
+        window.setInterval(drawGame, 15);
+        //window.setInterval(StateUpdate,15);
+
+        function CursorOptions(){
+
+
+        }
+
+        function Timer() {
+
+            this.date = new Date();
+
+            this.update = function () {
+
+                var d = new Date();
+                this.date = d;
+            }
+
+            this.getMilliseconds = function () {
+
+                return this.date.getTime();
+            }
+
+            this.getSeconds = function () {
+
+                return Math.round(this.date.getTime() / 1000);
+            }
+        }
+
+        var pointerX = 0;
+        var pointerY = 0;
+
+        $("#cnvGame").mousemove(function(e){
+
+            
+            var parentOffset = $(this).offset();
+            pointerX = parseInt(e.pageX - parentOffset.left);
+            pointerY = parseInt(e.pageY - parentOffset.top); 
+            var noEnemy = enemyList.length;
+
+            for(var n = 0; n < noEnemy; n++){
+
+                if(pointerX >= enemyList[n].x && pointerX <= enemyList[n].x + 32
+                    && pointerY >= enemyList[n].y && pointerY <= enemyList[n].y + 32) {
+
+                    pointerPos = 1;
+                    break;
+                }
+                else{
+                    pointerPos = 0;
+                }
+            }
+        });
+
+        $("#cnvGame").click(function(e){
+           
+           var parentOffset = $(this).offset();
+           var relX = parseInt((e.pageX - parentOffset.left) / 16);
+           var relY = parseInt((e.pageY - parentOffset.top) / 16);           
+           
+           getPath(relX, relY);
+           
+
+        });   
+
+        function getPath(relX, relY){
+
+            grid = new PF.Grid(mapwidth, mapHeight, pathMatrix);
+            player.path = finder.findPath(parseInt(player.x / 16), parseInt(player.y / 16), relX, relY, grid);    
+            player.path.reverse();
+            player.path.pop();       
+           
+        }
+
+          
+
+        function CreatePathmatrix(_matrix){
+
+            var maxY = _matrix.length;
+            var maxX = _matrix[0].length;
+            var tempPathMatrix = [];
+
+            for(var i = 0; i < maxY; i++){
+
+                var tempArray = [];
+
+                for(var n = 0; n < maxX; n++){ 
+
+                    tempArray.push(_matrix[i][n]);
+                }
+
+                tempPathMatrix.push(tempArray);
+            }
+
+            for(var i = 0; i < maxY; i++){
+
+                for(var n = 0; n < maxX; n++){                    
+
+                    if(_matrix[i][n] == 0){                        
+
+                        if((n + 1 < maxX && _matrix[i][n + 1] != 0)
+                            ||(i + 1 < maxY && _matrix[i + 1][n] != 0)
+                            ||(n + 1 < maxX && i + 1 < maxY && tempPathMatrix[i + 1][n + 1] != 0)){
+
+                            tempPathMatrix[i][n] = 1;
+                        }                        
+                    }
+                    else{
+
+                        //tempPathMatrix[i][n] = 0;
+                    }
+                }
+            }
+
+            return tempPathMatrix;
+        }   
+
+        function StateUpdate(){
+
+            if (player.path.length > 0) {  
+
+                var last = player.path.length;       
+
+                if(player.x == player.path[last - 1][0] * 16 && player.y == player.path[last - 1][1] * 16)
+                {
+                    player.path.pop();
+                }        
+
+                if (player.path.length > 0) {   
+
+                    last = player.path.length;  
+                    var speed = 2;
+
+                    if(player.x < player.path[last - 1][0] * 16){
+
+                        player.x += speed;
+                        pos = 2;
+                        player.direction = 2;
+                    }
+
+                    if(player.x > player.path[last - 1][0] * 16){
+
+                        player.x -= speed;
+                        pos = 1;
+                        player.direction = 1;
+                    }
+
+                    if(player.y < player.path[last - 1][1] * 16){
+
+                        player.y += speed;
+                        
+                        
+                        player.direction = 0;
+                    }
+
+                    if(player.y > player.path[last - 1][1] * 16){
+
+                        player.y -= speed;
+                        
+                        player.direction = 3;
+                    }                    
+                }                    
+                
+            }  
+        } 
+
+         
+
+        function drawGame() {
+
+            StateUpdate();
+            var canvas = document.getElementById('cnvGame');
+            var context = canvas.getContext('2d');
+            context.clearRect(0, 0, 1000, 1000);              
+
+            //if (player.path.length > 0) { 
+                timer.update(); 
+            //}
+
+
+            for(var i = 0; i < mapHeight; i++){
+
+                for(var n = 0; n < mapwidth; n++){
+
+                    grass.setPosition(n * 16, i * 16);
+                    grass.animate(context, timer);        
+                    grass.draw(context);
+                    var noSprites = spriteMap.length;
+
+                    for(var z = 0; z < noSprites; z++){
+
+                        if(spriteMap[z][0] == matrix[i][n]){
+
+                            spriteMap[z][1].setPosition(n * 16, i * 16);
+                            spriteMap[z][1].animate(context, timer);        
+                            spriteMap[z][1].draw(context);
+                            break;
+                        }
+                    }                    
+                }
+            }      
+
+            var noEnemy = enemyList.length;
+
+            for(var e = 0; e < noEnemy; e++){
+
+                context.textAlign = "center"; 
+                context.fillStyle = "white";
+                context.font = "Bold 18px sans-serif";
+                context.fillText(enemyList[e].name, (enemyList[e].x) + 16, (enemyList[e].y) - 15);
+
+                context.strokeStyle = 'black';
+                context.lineWidth = 1;
+                context.strokeText(enemyList[e].name, (enemyList[e].x) + 16, (enemyList[e].y) - 15);
+
+                var textWidth = context.measureText(enemyList[e].name);
+                context.beginPath();
+                context.arc(((enemyList[e].x )+5) - (textWidth.width / 2),(enemyList[e].y) - 20 , 10, 0, 2 * Math.PI, false);
+                context.fillStyle = 'green';
+                context.fill();
+                context.lineWidth = 2;
+                context.strokeStyle = '#003300';
+                context.stroke();
+                 
+                context.fillStyle = "black";
+                context.font = "Bold 16px sans-serif";
+                context.fillText(enemyList[e].level, ((enemyList[e].x)+5) - (textWidth.width / 2), (enemyList[e].y) - 15);
+
+                context.beginPath();
+                context.rect((enemyList[e].x) - 8, (enemyList[e].y) - 10, 50, 5);
+                context.fillStyle = 'red';
+                context.fill();  
+                
+                context.lineWidth = 1;
+                context.strokeStyle = 'black';
+                context.stroke();
+
+                enemyList[e].sprites[enemyList[e].direction].setPosition(enemyList[e].x, enemyList[e].y);
+                enemyList[e].sprites[enemyList[e].direction].animate(context, timer);        
+                enemyList[e].sprites[enemyList[e].direction].draw(context);     
+            }       
+            
+            context.textAlign = "center"; 
+            context.fillStyle = "white";
+            context.font = "Bold 18px sans-serif";
+            context.fillText(player.name, (player.x) + 16, (player.y) - 15);
+
+            context.strokeStyle = 'black';
+            context.lineWidth = 1;
+            context.strokeText(player.name, (player.x) + 16, (player.y) - 15);
+
+            var textWidth = context.measureText(player.name);
+            context.beginPath();
+            context.arc(((player.x )+5) - (textWidth.width / 2),(player.y) - 20 , 10, 0, 2 * Math.PI, false);
+            context.fillStyle = 'white';
+            context.fill();
+            context.lineWidth = 2;
+            context.strokeStyle = '#003300';
+            context.stroke();
+             
+            context.fillStyle = "black";
+            context.font = "Bold 16px sans-serif";
+            context.fillText(player.level, ((player.x)+5) - (textWidth.width / 2), (player.y) - 15);
+
+            context.beginPath();
+            context.rect((player.x) - 8, (player.y) - 10, 50, 5);
+            context.fillStyle = 'red';
+            context.fill();  
+
+            context.lineWidth = 1;
+            context.strokeStyle = 'black';
+            context.stroke();
+
+            playerSprite[player.direction].setPosition(player.x, player.y);
+            playerSprite[player.direction].animate(context, timer);        
+            playerSprite[player.direction].draw(context);     
+
+            pointers[pointerPos].setPosition(pointerX, pointerY);
+            pointers[pointerPos].animate(context, timer);        
+            pointers[pointerPos].draw(context);    
+                      
+        }
+
+        function Player(){
+
+            this.name;
+            this.health = 100;
+            this.x;
+            this.y;
+            this.level;
+            this.experience;
+            this.direction = 0;
+            this.path = [];
+            this.target;
+        }
+
+        function Enemy(){
+
+            this.name;
+            this.health = 100;
+            this.x;
+            this.y;
+            this.level;            
+            this.direction = 0;
+            this.path = [];
+            this.target = 1;
+        }
+    </script>
+</body>
+</html>
