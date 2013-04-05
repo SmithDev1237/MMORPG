@@ -10,7 +10,21 @@
     <canvas width="1000px" height="1000px" id="cnvGame" style="margin:50px; cursor:none"></canvas>
     <script>
 
-        var timer = new Timer();
+        function Game(){
+
+            this.timer = new Timer();
+            this.pointers = [];
+            this.pointerPos = 0;
+            this.context;
+            this.player = new Player();
+            this.enemyList = [];
+            this.spriteMap = [];
+            this.mapMatrix = [];
+            this.pathMatrix =[];
+        }
+
+        var game = new Game();
+        game.timer = new Timer();
         var playerSprite = [];
         var batSprite = [];
         playerSprite.push(new Sprite("images/player.png", 32, 32, 0, 0, 3, 200));
@@ -309,7 +323,7 @@
             context.clearRect(0, 0, 1000, 1000);              
 
             //if (player.path.length > 0) { 
-                timer.update(); 
+            game.timer.update(); 
             //}
 
 
@@ -318,7 +332,7 @@
                 for(var n = 0; n < mapwidth; n++){
 
                     grass.setPosition(n * 16, i * 16);
-                    grass.animate(context, timer);        
+                    grass.animate(context, game.timer);        
                     grass.draw(context);
                     var noSprites = spriteMap.length;
 
@@ -327,7 +341,7 @@
                         if(spriteMap[z][0] == matrix[i][n]){
 
                             spriteMap[z][1].setPosition(n * 16, i * 16);
-                            spriteMap[z][1].animate(context, timer);        
+                            spriteMap[z][1].animate(context, game.timer);        
                             spriteMap[z][1].draw(context);
                             break;
                         }
@@ -371,7 +385,7 @@
                 context.stroke();
 
                 enemyList[e].sprites[enemyList[e].direction].setPosition(enemyList[e].x, enemyList[e].y);
-                enemyList[e].sprites[enemyList[e].direction].animate(context, timer);        
+                enemyList[e].sprites[enemyList[e].direction].animate(context, game.timer);        
                 enemyList[e].sprites[enemyList[e].direction].draw(context);     
             }       
             
@@ -407,11 +421,11 @@
             context.stroke();
 
             playerSprite[player.direction].setPosition(player.x, player.y);
-            playerSprite[player.direction].animate(context, timer);        
+            playerSprite[player.direction].animate(context, game.timer);        
             playerSprite[player.direction].draw(context);     
 
             pointers[pointerPos].setPosition(pointerX, pointerY);
-            pointers[pointerPos].animate(context, timer);        
+            pointers[pointerPos].animate(context, game.timer);        
             pointers[pointerPos].draw(context);    
                       
         }
