@@ -45,10 +45,10 @@
         var tree3 = new Sprite("images/tree.png", 16, 16, 32, 0, 1, 0);
         var tree4 = new Sprite("images/tree.png", 16, 16, 48, 0, 1, 0);
 
-        var pointerPos = 0;
-        var pointers = [];
-        pointers.push(new Sprite("images/pointer.png", 32, 32, 0, 0, 1, 0));
-        pointers.push(new Sprite("images/sword.png", 32, 32, 0, 0, 1, 0));        
+        game.pointerPos = 0;
+        //var pointers = [];
+        game.pointers.push(new Sprite("images/pointer.png", 32, 32, 0, 0, 1, 0));
+        game.pointers.push(new Sprite("images/sword.png", 32, 32, 0, 0, 1, 0));        
 
         var spriteMap = [];
         spriteMap.push([1,bricks]);
@@ -103,13 +103,13 @@
             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 , 0, 0, 0, 0, 0, 0, 0, 0, 1]
         ]; 
 
-        var player = new Player();
-        player.name = "Martin";
-        player.level = 6;
-        player.x = 16;
-        player.y = 16;
+        //var player = new Player();
+        game.player.name = "Martin";
+        game.player.level = 6;
+        game.player.x = 16;
+        game.player.y = 16;
 
-        var enemyList = [];
+        //var enemyList = [];
         var bat1 = new Enemy();
         bat1.name = "Super Bat";
         bat1.level = 3;
@@ -131,9 +131,9 @@
         bat3.y = 300;
         bat3.sprites = batSprite;
 
-        enemyList.push(bat1);
-        enemyList.push(bat2);
-        enemyList.push(bat3);
+        game.enemyList.push(bat1);
+        game.enemyList.push(bat2);
+        game.enemyList.push(bat3);
 
         var mapwidth = matrix[0].length;
         var mapHeight = matrix.length;
@@ -147,6 +147,8 @@
         var pathPlayer = [];        
         var count = 0;  
 
+        var canvas = document.getElementById('cnvGame');
+        game.context = canvas.getContext('2d');
         window.setInterval(drawGame, 15);
         //window.setInterval(StateUpdate,15);
 
@@ -185,6 +187,7 @@
             var parentOffset = $(this).offset();
             pointerX = parseInt(e.pageX - parentOffset.left);
             pointerY = parseInt(e.pageY - parentOffset.top); 
+            var enemyList = game.enemyList;
             var noEnemy = enemyList.length;
 
             for(var n = 0; n < noEnemy; n++){
@@ -215,9 +218,9 @@
         function getPath(relX, relY){
 
             grid = new PF.Grid(mapwidth, mapHeight, pathMatrix);
-            player.path = finder.findPath(parseInt(player.x / 16), parseInt(player.y / 16), relX, relY, grid);    
-            player.path.reverse();
-            player.path.pop();       
+            game.player.path = finder.findPath(parseInt(game.player.x / 16), parseInt(game.player.y / 16), relX, relY, grid);   
+            game.player.path.reverse();
+            game.player.path.pop();       
            
         }
 
@@ -266,6 +269,8 @@
 
         function StateUpdate(){
 
+            var player = game.player;
+
             if (player.path.length > 0) {  
 
                 var last = player.path.length;       
@@ -311,6 +316,8 @@
                 }                    
                 
             }  
+
+            game.player = player;
         } 
 
          
@@ -318,8 +325,7 @@
         function drawGame() {
 
             StateUpdate();
-            var canvas = document.getElementById('cnvGame');
-            var context = canvas.getContext('2d');
+            var context = game.context;
             context.clearRect(0, 0, 1000, 1000);              
 
             //if (player.path.length > 0) { 
@@ -349,6 +355,7 @@
                 }
             }      
 
+            var enemyList = game.enemyList;
             var noEnemy = enemyList.length;
 
             for(var e = 0; e < noEnemy; e++){
@@ -389,6 +396,8 @@
                 enemyList[e].sprites[enemyList[e].direction].draw(context);     
             }       
             
+            var player = game.player;
+
             context.textAlign = "center"; 
             context.fillStyle = "white";
             context.font = "Bold 18px sans-serif";
@@ -424,9 +433,9 @@
             playerSprite[player.direction].animate(context, game.timer);        
             playerSprite[player.direction].draw(context);     
 
-            pointers[pointerPos].setPosition(pointerX, pointerY);
-            pointers[pointerPos].animate(context, game.timer);        
-            pointers[pointerPos].draw(context);    
+            game.pointers[game.pointerPos].setPosition(pointerX, pointerY);
+            game.pointers[game.pointerPos].animate(context, game.timer);        
+            game.pointers[game.pointerPos].draw(context);    
                       
         }
 
