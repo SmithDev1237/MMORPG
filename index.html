@@ -195,14 +195,16 @@
                 if(pointerX >= enemyList[n].x && pointerX <= enemyList[n].x + 32
                     && pointerY >= enemyList[n].y && pointerY <= enemyList[n].y + 32) {
 
-                    pointerPos = 1;
+                    game.pointerPos = 1;
+                    target = [enemyList[n].x,enemyList[n].y];
                     break;
                 }
                 else{
-                    pointerPos = 0;
+                    game.pointerPos = 0;
                 }
             }
         });
+        var target = [];
 
         $("#cnvGame").click(function(e){
            
@@ -210,7 +212,14 @@
            var relX = parseInt((e.pageX - parentOffset.left) / 16);
            var relY = parseInt((e.pageY - parentOffset.top) / 16);           
            
-           getPath(relX, relY);
+            if(game.pointerPos == 0){
+                getPath(relX, relY);
+                game.player.target = [];
+            }
+            else{
+                getPathToTarget(relX,relY);
+                game.player.target = target;
+            }
            
 
         });   
@@ -219,6 +228,17 @@
 
             grid = new PF.Grid(mapwidth, mapHeight, pathMatrix);
             game.player.path = finder.findPath(parseInt(game.player.x / 16), parseInt(game.player.y / 16), relX, relY, grid);   
+            game.player.path.reverse();
+            game.player.path.pop();       
+           
+        }
+
+        function getPathToTarget(relX, relY){
+
+            grid = new PF.Grid(mapwidth, mapHeight, pathMatrix);
+            game.player.path = finder.findPath(parseInt(game.player.x / 16), parseInt(game.player.y / 16), relX, relY, grid);  
+            game.player.path.pop();   
+            game.player.path.pop(); 
             game.player.path.reverse();
             game.player.path.pop();       
            
