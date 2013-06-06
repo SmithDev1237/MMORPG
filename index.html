@@ -3,11 +3,12 @@
 <head>
     <script src="scripts/jQuery.js"></script>
     <script src="scripts/pathfinding-browser.js"></script>
+    <script src="scripts/rAF.js"></script>
     <script src="scripts/sprite.js"></script>
     <title>Untitled Page</title>
 </head>
 <body>
-    <canvas width="1000px" height="1000px" id="cnvGame" style="margin:50px; cursor:none"></canvas>
+    <canvas width="960px" height="640px" id="cnvGame" style="margin:50px; cursor:none"></canvas>
     <script>
 
         function Game(){
@@ -21,12 +22,17 @@
             this.spriteMap = [];
             this.mapMatrix = [];
             this.pathMatrix =[];
+            this.offsetX = 0;
+            this.offsetY = 0;
         }
-
+        
         var game = new Game();
+        game.offsetX = 0;
+        game.offsetY = 0;
         game.timer = new Timer();
         var playerSprite = [];
         var batSprite = [];
+        var knightSprite = [];
         playerSprite.push(new Sprite("images/player.png", 32, 32, 0, 0, 3, 200));
         playerSprite.push(new Sprite("images/player.png", 32, 32, 0, 32, 3, 200));
         playerSprite.push(new Sprite("images/player.png", 32, 32, 0, 64, 3, 200));
@@ -34,16 +40,12 @@
         batSprite.push(new Sprite("images/bat.png", 32, 32, 0, 0, 3, 500));
         batSprite.push(new Sprite("images/bat.png", 32, 32, 0, 32, 3, 500));
         batSprite.push(new Sprite("images/bat.png", 32, 32, 0, 64, 3, 500));
-        batSprite.push(new Sprite("images/bat.png", 32, 32, 0, 96, 3, 500));
-        var lava = new Sprite("images/sprites.png", 16, 16, 0, 16,3,5000);
-        //var lava = new Sprite("images/sum.png", 16, 16, 80, 16,0,0);
-        var bricks = new Sprite("images/bricks.bmp", 16, 16, 0, 0, 1, 0);
-        var grass = new Sprite("images/grass.bmp", 16, 16, 0, 0, 1, 0);
-        //var grass = new Sprite("images/sum.png", 16, 16, 336, 16, 1, 0);
-        var tree1 = new Sprite("images/tree.png", 16, 16, 0, 0, 1, 0);
-        var tree2 = new Sprite("images/tree.png", 16, 16, 16, 0, 1, 0);
-        var tree3 = new Sprite("images/tree.png", 16, 16, 32, 0, 1, 0);
-        var tree4 = new Sprite("images/tree.png", 16, 16, 48, 0, 1, 0);
+        batSprite.push(new Sprite("images/bat.png", 32, 32, 0, 96, 3, 500));       
+
+        knightSprite.push(new Sprite("images/knight.png", 32, 32, 0, 0, 3, 500));
+        knightSprite.push(new Sprite("images/knight.png", 32, 32, 0, 32, 3, 500));
+        knightSprite.push(new Sprite("images/knight.png", 32, 32, 0, 64, 3, 500));
+        knightSprite.push(new Sprite("images/knight.png", 32, 32, 0, 96, 3, 500));    
 
         game.pointerPos = 0;
         //var pointers = [];
@@ -51,106 +53,103 @@
         game.pointers.push(new Sprite("images/sword.png", 32, 32, 0, 0, 1, 0));        
 
         var spriteMap = [];
-        spriteMap.push([1,bricks]);
-        spriteMap.push([2,lava]);
-        spriteMap.push([3,tree1]);
-        spriteMap.push([4,tree2]);
-        spriteMap.push([5,tree3]);
-        spriteMap.push([6,tree4]);
-
-        
         var pathMatrix = [];
-        var matrix = [
-            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 0, 0, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 0, 0, 5, 6, 5, 6, 5, 6, 5, 6, 5, 6, 5, 6, 5, 6, 5, 6, 5, 6, 5, 6, 5, 6, 5, 6, 5, 6, 5, 6, 5, 6, 5, 6, 5, 6, 5, 6, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 4, 3, 4, 3, 4, 3, 4, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 6, 5, 6, 5, 6, 5, 6, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 3, 4, 3, 4, 3, 4, 3, 4, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 5, 6, 5, 6, 5, 6, 5, 6, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 3, 4, 3, 4, 3, 4, 3, 4, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 5, 6, 5, 6, 5, 6, 5, 6, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 4, 3, 4, 3, 4, 3, 4, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 6, 5, 6, 5, 6, 5, 6, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 3, 4, 3, 4, 3, 4, 3, 4, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 5, 6, 5, 6, 5, 6, 5, 6, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 3, 4, 3, 4, 3, 4, 3, 4, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 6, 5, 6, 5, 6, 5, 6, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 4, 3, 4, 3, 4, 3, 4, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 6, 5, 6, 5, 6, 5, 6, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 , 0, 0, 0, 0, 0, 0, 0, 0, 1]
-        ]; 
+        var matrix = [];
+        var floorMatrix = [];
+        var skyMatrix = [];
 
-        //var player = new Player();
+        $.ajax({
+          url: "saves/save.txt"
+        }).done(function(data) {
+            data = $.parseJSON(data);
+            matrix = data.TerrainMatrix;
+            floorMatrix = data.FloorMatrix;
+            skyMatrix = data.SkyMatrix;
+            var tempSprites = data.Sprites;
+
+            var noOfSprites = tempSprites.length;
+
+            for(var i = 0; i < noOfSprites; i++){
+
+                spriteMap.push([tempSprites[i][0], new Sprite(tempSprites[i][1][0], tempSprites[i][1][1], tempSprites[i][1][2], tempSprites[i][1][3], tempSprites[i][1][4], tempSprites[i][1][5], tempSprites[i][1][6])]);
+            }
+        });   
+        
         game.player.name = "Martin";
         game.player.level = 6;
-        game.player.x = 16;
-        game.player.y = 16;
-
-        //var enemyList = [];
+        game.player.x = 480;
+        game.player.y = 256;
+        
         var bat1 = new Enemy();
         bat1.name = "Super Bat";
         bat1.level = 3;
         bat1.x = 200;
-        bat1.y = 100;
+        bat1.y = 60;
         bat1.sprites = batSprite;
 
-        var bat2 = new Enemy();
-        bat2.name = "Super Bat";
-        bat2.level = 2;
-        bat2.x = 350;
-        bat2.y = 400;
-        bat2.sprites = batSprite;
+        var knight1 = new Enemy();
+        knight1.name = "Guard";
+        knight1.level = 9;
+        knight1.x = 350;
+        knight1.y = 410;
+        knight1.sprites = knightSprite;
+
+        var knight2 = new Enemy();
+        knight2.name = "Guard";
+        knight2.level = 9;
+        knight2.x = 414;
+        knight2.y = 410;
+        knight2.sprites = knightSprite;
 
         var bat3 = new Enemy();
         bat3.name = "Super Bat";
         bat3.level = 2;
-        bat3.x = 650;
-        bat3.y = 300;
+        bat3.x = 640;
+        bat3.y = 316;
         bat3.sprites = batSprite;
 
         game.enemyList.push(bat1);
-        game.enemyList.push(bat2);
+        game.enemyList.push(knight1);
+        game.enemyList.push(knight2);
         game.enemyList.push(bat3);
 
-        var mapwidth = matrix[0].length;
-        var mapHeight = matrix.length;
-
-        pathMatrix = CreatePathmatrix(matrix); 
-
-        var grid = new PF.Grid(mapwidth, mapHeight, pathMatrix);
-        var finder = new PF.AStarFinder();
-        finder.allowDiagonal = true;
-        finder.dontCrossCorners = true;
+        var mapwidth;
+        var mapHeight;
         var pathPlayer = [];        
         var count = 0;  
-
         var canvas = document.getElementById('cnvGame');
         game.context = canvas.getContext('2d');
-        window.setInterval(drawGame, 15);
-        //window.setInterval(StateUpdate,15);
+        var finder = new PF.AStarFinder();
+
+        function startGame(){
+
+            mapwidth = matrix[0].length;
+            mapHeight = matrix.length;
+
+            //pathMatrix = CreatePathmatrix(matrix); 
+            pathMatrix = matrix;
+
+            //var grid = new PF.Grid(mapwidth, mapHeight, pathMatrix);
+            
+            finder.allowDiagonal = true;
+            finder.dontCrossCorners = true;
+            //window.setInterval(drawGame, 15);
+            main();
+        }            
+        
+        var lastTime;
+        function main() {
+            var now = Date.now();
+            var dt = (now - lastTime) / 1000.0;
+
+            //update(dt);
+            //render();
+            StateUpdate(dt);
+            drawGame();
+
+            lastTime = now;
+            requestAnimationFrame(main);
+        }
 
         function CursorOptions(){
 
@@ -196,25 +195,27 @@
                     && pointerY >= enemyList[n].y && pointerY <= enemyList[n].y + 32) {
 
                     game.pointerPos = 1;
-                    target = [enemyList[n].x,enemyList[n].y];
+                    target = n;
+                    game.player.target = n;
                     break;
                 }
                 else{
                     game.pointerPos = 0;
+                    game.player.target = -1;
                 }
             }
         });
-        var target = [];
+        var target = -1;
 
         $("#cnvGame").click(function(e){
            
            var parentOffset = $(this).offset();
-           var relX = parseInt((e.pageX - parentOffset.left) / 16);
-           var relY = parseInt((e.pageY - parentOffset.top) / 16);           
+           var relX = parseInt(((e.pageX - parentOffset.left) - game.offsetX) / 32);
+           var relY = parseInt(((e.pageY - parentOffset.top) - game.offsetY) / 32);           
            
             if(game.pointerPos == 0){
                 getPath(relX, relY);
-                game.player.target = [];
+                game.player.target = -1;
             }
             else{
                 getPathToTarget(relX,relY);
@@ -227,7 +228,7 @@
         function getPath(relX, relY){
 
             grid = new PF.Grid(mapwidth, mapHeight, pathMatrix);
-            game.player.path = finder.findPath(parseInt(game.player.x / 16), parseInt(game.player.y / 16), relX, relY, grid);   
+            game.player.path = finder.findPath(parseInt(game.player.x / 32), parseInt(game.player.y / 32), relX, relY, grid);   
             game.player.path.reverse();
             game.player.path.pop();       
            
@@ -236,7 +237,7 @@
         function getPathToTarget(relX, relY){
 
             grid = new PF.Grid(mapwidth, mapHeight, pathMatrix);
-            game.player.path = finder.findPath(parseInt(game.player.x / 16), parseInt(game.player.y / 16), relX, relY, grid);  
+            game.player.path = finder.findPath(parseInt(game.player.x / 32), parseInt(game.player.y / 32), relX, relY, grid);  
             game.player.path.pop();   
             game.player.path.pop(); 
             game.player.path.reverse();
@@ -270,9 +271,7 @@
 
                     if(_matrix[i][n] == 0){                        
 
-                        if((n + 1 < maxX && _matrix[i][n + 1] != 0)
-                            ||(i + 1 < maxY && _matrix[i + 1][n] != 0)
-                            ||(n + 1 < maxX && i + 1 < maxY && tempPathMatrix[i + 1][n + 1] != 0)){
+                        if((n + 1 < maxX && _matrix[i][n + 1] != 0)){
 
                             tempPathMatrix[i][n] = 1;
                         }                        
@@ -287,15 +286,17 @@
             return tempPathMatrix;
         }   
 
-        function StateUpdate(){
+        function StateUpdate(dt){
 
             var player = game.player;
 
             if (player.path.length > 0) {  
 
-                var last = player.path.length;       
+                var last = player.path.length; 
+                var destX = player.path[last - 1][0] * 32;   
+                var destY = player.path[last - 1][1] * 32;    
 
-                if(player.x == player.path[last - 1][0] * 16 && player.y == player.path[last - 1][1] * 16)
+                if(player.x == destX && player.y == destY)
                 {
                     player.path.pop();
                 }        
@@ -303,70 +304,118 @@
                 if (player.path.length > 0) {   
 
                     last = player.path.length;  
-                    var speed = 2;
+                    var speed = parseInt(120 * dt);
 
-                    if(player.x < player.path[last - 1][0] * 16){
+                    if(player.x < destX){
 
                         player.x += speed;
-                        pos = 2;
+                        game.offsetX -= speed;
+
+                        if(player.x > destX){
+                            player.x = destX;
+                        }
+
+                        //pos = 2;
                         player.direction = 2;
                     }
 
-                    if(player.x > player.path[last - 1][0] * 16){
+                    if(player.x > destX){
 
                         player.x -= speed;
-                        pos = 1;
+                        game.offsetX += speed;
+
+                        if(player.x < destX){
+                            player.x = destX;
+                        }
+
+                        //pos = 1;
                         player.direction = 1;
                     }
 
-                    if(player.y < player.path[last - 1][1] * 16){
+                    if(player.y < destY){
 
                         player.y += speed;
+                        game.offsetY -= speed;
                         
-                        
+                        if(player.y > destY){
+                            player.y = destY;
+                        }
+
                         player.direction = 0;
                     }
 
-                    if(player.y > player.path[last - 1][1] * 16){
+                    if(player.y > destY){
 
                         player.y -= speed;
+                        game.offsetY += speed;
                         
+                        if(player.y < destY){
+                            player.y = destY;
+                        }
+
                         player.direction = 3;
                     }                    
                 }                    
                 
             }  
-
+            player.x = parseInt(player.x);
+            player.y = parseInt(player.y);
             game.player = player;
         } 
 
          
 
         function drawGame() {
-
-            StateUpdate();
+            
             var context = game.context;
             context.clearRect(0, 0, 1000, 1000);              
-
+            var player = game.player;
             //if (player.path.length > 0) { 
             game.timer.update(); 
             //}
+            var startX = parseInt((player.x / 32)) - 18;
+            if(startX < 0){
+                startX = 0;
+            }
 
+            var endX = parseInt((player.x / 32)) + 18;
+            if(endX > floorMatrix.length[0] - 1){
+                endX = floorMatrix.length[0] - 1;
+            }
 
-            for(var i = 0; i < mapHeight; i++){
+            var startY = parseInt((player.y / 32)) - 14;
+            if(startY < 0){
+                startY = 0;
+            }
 
-                for(var n = 0; n < mapwidth; n++){
+            var endY = parseInt((player.y / 32)) + 14;
+            if(endY > floorMatrix.length - 1){
+                endY = floorMatrix.length - 1;
+            }
 
-                    grass.setPosition(n * 16, i * 16);
-                    grass.animate(context, game.timer);        
-                    grass.draw(context);
+            for(var i = startY; i < endY; i++){
+
+                for(var n = startX; n < endX; n++){
+
+                    
                     var noSprites = spriteMap.length;
+
+                    for(var z = 0; z < noSprites; z++){
+
+                        if(spriteMap[z][0] == floorMatrix[i][n]){
+
+                            spriteMap[z][1].setPosition(n * 32 + game.offsetX, i * 32 + game.offsetY);
+                            spriteMap[z][1].animate(context, game.timer);        
+                            spriteMap[z][1].draw(context);
+                            break;
+                        }
+                    }   
 
                     for(var z = 0; z < noSprites; z++){
 
                         if(spriteMap[z][0] == matrix[i][n]){
 
-                            spriteMap[z][1].setPosition(n * 16, i * 16);
+                            spriteMap[z][1].setPosition(n * 32 + game.offsetX, i * 32 + game.offsetY);
                             spriteMap[z][1].animate(context, game.timer);        
                             spriteMap[z][1].draw(context);
                             break;
@@ -380,56 +429,59 @@
 
             for(var e = 0; e < noEnemy; e++){
 
-                context.textAlign = "center"; 
-                context.fillStyle = "white";
-                context.font = "Bold 18px sans-serif";
-                context.fillText(enemyList[e].name, (enemyList[e].x) + 16, (enemyList[e].y) - 15);
+                if(game.player.target == e){
+                    context.textAlign = "center"; 
+                    context.fillStyle = "white";
+                    context.font = "Bold 18px sans-serif";
+                    context.fillText(enemyList[e].name, (enemyList[e].x + game.offsetX) + 18, (enemyList[e].y + game.offsetY) - 15);
 
-                context.strokeStyle = 'black';
-                context.lineWidth = 1;
-                context.strokeText(enemyList[e].name, (enemyList[e].x) + 16, (enemyList[e].y) - 15);
+                    context.strokeStyle = 'black';
+                    context.lineWidth = 1;
+                    context.strokeText(enemyList[e].name, (enemyList[e].x + game.offsetX) + 18, (enemyList[e].y + game.offsetY) - 15);
 
-                var textWidth = context.measureText(enemyList[e].name);
-                context.beginPath();
-                context.arc(((enemyList[e].x )+5) - (textWidth.width / 2),(enemyList[e].y) - 20 , 10, 0, 2 * Math.PI, false);
-                context.fillStyle = 'green';
-                context.fill();
-                context.lineWidth = 2;
-                context.strokeStyle = '#003300';
-                context.stroke();
-                 
-                context.fillStyle = "black";
-                context.font = "Bold 16px sans-serif";
-                context.fillText(enemyList[e].level, ((enemyList[e].x)+5) - (textWidth.width / 2), (enemyList[e].y) - 15);
+                    var textWidth = context.measureText(enemyList[e].name);
+                    context.beginPath();
+                    context.arc(((enemyList[e].x  + game.offsetX)+5) - (textWidth.width / 2),(enemyList[e].y + game.offsetY) - 20 , 10, 0, 2 * Math.PI, false);
+                    context.fillStyle = 'green';
+                    context.fill();
+                    context.lineWidth = 2;
+                    context.strokeStyle = '#003300';
+                    context.stroke();
+                     
+                    context.fillStyle = "black";
+                    context.font = "Bold 16px sans-serif";
+                    context.fillText(enemyList[e].level, ((enemyList[e].x + game.offsetX)+5) - (textWidth.width / 2), (enemyList[e].y + game.offsetY) - 15);
 
-                context.beginPath();
-                context.rect((enemyList[e].x) - 8, (enemyList[e].y) - 10, 50, 5);
-                context.fillStyle = 'red';
-                context.fill();  
-                
-                context.lineWidth = 1;
-                context.strokeStyle = 'black';
-                context.stroke();
+                    context.beginPath();
+                    context.rect((enemyList[e].x + game.offsetX) - 8, (enemyList[e].y + game.offsetY) - 10, 50, 5);
+                    context.fillStyle = 'red';
+                    context.fill();  
+                    
+                    context.lineWidth = 1;
+                    context.strokeStyle = 'black';
+                    context.stroke();
+                }
 
-                enemyList[e].sprites[enemyList[e].direction].setPosition(enemyList[e].x, enemyList[e].y);
+                enemyList[e].sprites[enemyList[e].direction].setPosition(enemyList[e].x + game.offsetX, enemyList[e].y + game.offsetY);
                 enemyList[e].sprites[enemyList[e].direction].animate(context, game.timer);        
                 enemyList[e].sprites[enemyList[e].direction].draw(context);     
             }       
             
-            var player = game.player;
+            
+            var posY = player.y + game.offsetY;
 
             context.textAlign = "center"; 
             context.fillStyle = "white";
             context.font = "Bold 18px sans-serif";
-            context.fillText(player.name, (player.x) + 16, (player.y) - 15);
+            context.fillText(player.name, (player.x + game.offsetX) + 18, (posY) - 23);
 
             context.strokeStyle = 'black';
             context.lineWidth = 1;
-            context.strokeText(player.name, (player.x) + 16, (player.y) - 15);
+            context.strokeText(player.name, (player.x + game.offsetX) + 18, (posY) - 23);
 
             var textWidth = context.measureText(player.name);
             context.beginPath();
-            context.arc(((player.x )+5) - (textWidth.width / 2),(player.y) - 20 , 10, 0, 2 * Math.PI, false);
+            context.arc(((player.x  + game.offsetX)+5) - (textWidth.width / 2),(posY) - 28, 10, 0, 2 * Math.PI, false);
             context.fillStyle = 'white';
             context.fill();
             context.lineWidth = 2;
@@ -438,10 +490,10 @@
              
             context.fillStyle = "black";
             context.font = "Bold 16px sans-serif";
-            context.fillText(player.level, ((player.x)+5) - (textWidth.width / 2), (player.y) - 15);
+            context.fillText(player.level, ((player.x + game.offsetX)+5) - (textWidth.width / 2), (posY) - 23);
 
             context.beginPath();
-            context.rect((player.x) - 8, (player.y) - 10, 50, 5);
+            context.rect((player.x + game.offsetX) - 8, (posY) - 18, 50, 5);
             context.fillStyle = 'red';
             context.fill();  
 
@@ -449,13 +501,34 @@
             context.strokeStyle = 'black';
             context.stroke();
 
-            playerSprite[player.direction].setPosition(player.x, player.y);
+            playerSprite[player.direction].setPosition(player.x + game.offsetX, (player.y - 8) + game.offsetY);
             playerSprite[player.direction].animate(context, game.timer);        
             playerSprite[player.direction].draw(context);     
 
+            
+
+            for(var i = startY; i < endY; i++){
+
+                for(var n = startX; n < endX; n++){
+                    
+                    var noSprites = spriteMap.length;
+
+                    for(var z = 0; z < noSprites; z++){
+
+                        if(spriteMap[z][0] == skyMatrix[i][n]){
+
+                            spriteMap[z][1].setPosition(n * 32 + game.offsetX, i * 32 + game.offsetY);
+                            spriteMap[z][1].animate(context, game.timer);        
+                            spriteMap[z][1].draw(context);
+                            break;
+                        }
+                    }                                      
+                }
+            }       
+
             game.pointers[game.pointerPos].setPosition(pointerX, pointerY);
             game.pointers[game.pointerPos].animate(context, game.timer);        
-            game.pointers[game.pointerPos].draw(context);    
+            game.pointers[game.pointerPos].draw(context); 
                       
         }
 

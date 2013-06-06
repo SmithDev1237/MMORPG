@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script src="scripts/jQuery.js"></script>
+    <script src="scripts/sprite.js"></script>
+    <script src="scripts/jquery-ui.js"></script>    
+    <link rel="stylesheet" href="css/jquery-ui.css" />
+    <title>Untitled Page</title>
+    <style type="text/css">
+    	.spriteBox{
+    		display:inline-block;
+    		float: left;
+    		overflow: hidden;
+    		border:1px solid #ccc;
+    	}
+    	#spritePicker{
+    		width:500px;
+    		float:right
+    	}
+        #divContainer{
+            border:1px solid black; 
+            float:left;
+            width:700px;
+            height:700px;
+            overflow: scroll;
+        }
+        #cnvGame{
+            margin:0px; 
+            cursor:pointer;
+            background-color:#ddd;
+        }
+    </style>
+</head>
+<body>
+
+<div id="spritePicker"></div>
+<img src="images/spritesheet.png" id="sprites" style="position:absolute; right:200000px;">
+<div id="divContainer">
+<canvas width="700px" height="700px" id="cnvGame"></canvas>
+</div>
+Floor <input type="radio" name="layer" onclick="selectedLayer = 0;" checked>
+Terrain <input type="radio" name="layer" onclick="selectedLayer = 1;">
+Sky <input type="radio" name="layer" onclick="selectedLayer = 2;">
+<script>
+
+var spriteMap = [];
+var selectedSprite = 0;
+var selectedLayer = 0;
+var floorMatrix = [];
+var terrainMatrix = [];
+var skyMatrix = [];
+var gameLoop;
+var spriteArray = [];
+var tileSize = 32;
+var tilesX = 100;
+var tilesY = 100;
+var canvas = document.getElementById('cnvGame');
+
+$("#sprites").load(function(){
+    
+    $("#divContainer").resizable();
+    $("#cnvGame").attr({'width':tilesX * tileSize,'height':tilesY * tileSize});
+	
+	var imageWidth = parseInt($("#sprites").width() / tileSize);
+	var imageHeight = parseInt($("#sprites").height() / tileSize);
+	var counter = 1;
+    floorMatrix = SetupMatrix(floorMatrix,tilesX,tilesY);	
+    terrainMatrix = SetupMatrix(terrainMatrix,tilesX,tilesY);
+    skyMatrix = SetupMatrix(skyMatrix,tilesX,tilesY);
+
+    var div = $(document.createElement('div'));
+    div.width(tileSize);
+    div.height(tileSize);
+    div.addClass("spriteBox");
+    div.attr('id', "0");
+    div.html("");    
+    div.click(function(){
+
+        SetSprite(this.id);
+    });
+
+    $("#spritePicker").append(div);
+
+	for(var y = 0; y < imageHeight; y++){
+
+		for(var x = 0; x < imageWidth; x++){	
+
+			var div = $(document.createElement('div'));
+			div.width(tileSize);
+			div.height(tileSize);
+			div.addClass("spriteBox");
+            div.attr('id', counter);
+			div.html("");
+			div.css('background-image', 'url(images/spritesheet.png)');
+			div.css("background-position", "-"+ x * tileSize +"px -"+ y * tileSize +"px");
+			div.click(function(){
+
+                SetSprite(this.id);
+            });
+
+			$("#spritePicker").append(div);
+
+			spriteMap.push([
+				counter,
+				new Sprite("images/spritesheet.png", tileSize, tileSize, x * tileSize, y * tileSize, 1, 0)
+			]);
+
+            spriteArray.push([
+                counter,
+                ["images/spritesheet.png", tileSize, tileSize, x * tileSize, y * tileSize, 1, 0]
+            ]);
+			counter++;
+
+		}
+	}
+
+    $("#cnvGame").click(function(e){
+           
+       var parentOffset = $(this).offset();
+       var relX = parseInt((e.pageX - parentOffset.left) / tileSize);
+       var relY = parseInt((e.pageY - parentOffset.top) / tileSize);   
+
+       switch(selectedLayer){
+
+            case 0:
+                floorMatrix[relY][relX] = parseInt(selectedSprite);
+                break
+
+            case 1:
+                terrainMatrix[relY][relX] = parseInt(selectedSprite);
+                break
+
+            case 2:
+                skyMatrix[relY][relX] = parseInt(selectedSprite);
+                break
+       }
+           
+
+    });   
+
+    
+    var context = canvas.getContext('2d');
+    gameLoop = setInterval(function(){
+        
+        DrawMap(context, tilesX * tileSize, tilesY * tileSize, floorMatrix, tileSize), 
+        500
+    });
+    
+});
+
+function massFill(){
+
+    var mapwidth = floorMatrix[0].length;
+    var mapHeight = floorMatrix.length; 
+
+    for(var i = 0; i < mapHeight; i++){
+
+        for(var n = 0; n < mapwidth; n++){
+
+            switch(selectedLayer){
+
+                case 0:
+                    floorMatrix[i][n] = parseInt(selectedSprite);
+                    break
+
+                case 1:
+                    terrainMatrix[i][n] = parseInt(selectedSprite);
+                    break
+
+                case 2:
+                    skyMatrix[i][n] = parseInt(selectedSprite);
+                    break
+            }
+        }
+    }
+}
+
+function SaveMap(){
+
+    var jsonData = new Object;
+    jsonData["Sprites"] = spriteArray;    
+    jsonData["FloorMatrix"] = floorMatrix;
+    jsonData["TerrainMatrix"] = terrainMatrix;
+    jsonData["SkyMatrix"] = skyMatrix;
+
+    return JSON.stringify(jsonData);
+}
+
+function DrawMap(ctx, _x,_y, matrix, tileSize){
+    
+    ctx.clearRect(0, 0, _x, _y); 
+    var mapwidth = matrix[0].length;
+    var mapHeight = matrix.length;             
+
+    //if (player.path.length > 0) { 
+    //game.timer.update(); 
+    //}
+
+
+    for(var i = 0; i < mapHeight; i++){
+
+        for(var n = 0; n < mapwidth; n++){
+
+            ctx.beginPath();
+            ctx.rect(n * tileSize, i * tileSize, tileSize, tileSize);            
+            ctx.lineWidth = 1;
+            ctx.strokeStyle = 'grey';
+            //ctx.stroke();  
+            
+            var noSprites = spriteMap.length;
+
+            for(var z = 0; z < noSprites; z++){
+
+                if(spriteMap[z][0] == floorMatrix[i][n]){
+
+                    spriteMap[z][1].setPosition(n * tileSize, i * tileSize);
+                    //priteMap[z][1].animate(context, game.timer);        
+                    spriteMap[z][1].draw(ctx);
+                    break;
+                }
+            }                           
+        }
+    }    
+
+    for(var i = 0; i < mapHeight; i++){
+
+        for(var n = 0; n < mapwidth; n++){
+
+            ctx.beginPath();
+            ctx.rect(n * tileSize, i * tileSize, tileSize, tileSize);            
+            ctx.lineWidth = 1;
+            ctx.strokeStyle = 'grey';
+            //ctx.stroke();  
+            
+            var noSprites = spriteMap.length;
+
+            for(var z = 0; z < noSprites; z++){
+
+                if(spriteMap[z][0] == terrainMatrix[i][n]){
+
+                    spriteMap[z][1].setPosition(n * tileSize, i * tileSize);
+                    //priteMap[z][1].animate(context, game.timer);        
+                    spriteMap[z][1].draw(ctx);
+                    break;
+                }
+            }                           
+        }
+    }    
+
+    for(var i = 0; i < mapHeight; i++){
+
+        for(var n = 0; n < mapwidth; n++){
+
+            ctx.beginPath();
+            ctx.rect(n * tileSize, i * tileSize, tileSize, tileSize);            
+            ctx.lineWidth = 1;
+            ctx.strokeStyle = 'grey';
+            //ctx.stroke();  
+            
+            var noSprites = spriteMap.length;
+
+            for(var z = 0; z < noSprites; z++){
+
+                if(spriteMap[z][0] == skyMatrix[i][n]){
+
+                    spriteMap[z][1].setPosition(n * tileSize, i * tileSize);
+                    //priteMap[z][1].animate(context, game.timer);        
+                    spriteMap[z][1].draw(ctx);
+                    break;
+                }
+            }                           
+        }
+    }      
+}
+
+function SetupMatrix(_matrix, _x, _y){
+
+    for(var y = 0; y < _y; y++){
+
+        var tempArray = [];
+
+        for(var x = 0; x < _x; x++){
+
+            tempArray.push(0);
+        }
+
+        _matrix.push(tempArray);
+    }
+    return _matrix;
+}
+
+function SetSprite(id){
+
+    selectedSprite = id;
+}
+
+
+</script
+</body>
+</html>
