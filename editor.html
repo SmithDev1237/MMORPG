@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <script src="scripts/jQuery.js"></script>
+    <script src="scripts/jquery.js"></script>
     <script src="scripts/sprite.js"></script>
     <script src="scripts/jquery-ui.js"></script>    
     <link rel="stylesheet" href="css/jquery-ui.css" />
@@ -173,6 +173,15 @@ function massFill(){
             }
         }
     }
+}
+
+function LoadMap(savedFile){
+
+    var data = $.parseJSON(savedFile);
+    spriteArray = data["Sprites"];
+    floorMatrix = data["FloorMatrix"];
+    terrainMatrix = data["TerrainMatrix"];
+    skyMatrix = data["SkyMatrix"];
 }
 
 function SaveMap(){
