@@ -8,7 +8,7 @@
     <title>Untitled Page</title>
 </head>
 <body>
-    <canvas width="960px" height="640px" id="cnvGame" style="margin:50px; cursor:none"></canvas>
+    <canvas width="1024px" height="672px" id="cnvGame" style="margin:50px; cursor:none"></canvas>
     <script>
 
         function Game(){
@@ -368,27 +368,27 @@
         function drawGame() {
             
             var context = game.context;
-            context.clearRect(0, 0, 1000, 1000);              
+            context.clearRect(0, 0, 1024, 1000);              
             var player = game.player;
             //if (player.path.length > 0) { 
             game.timer.update(); 
             //}
-            var startX = parseInt((player.x / 32)) - 18;
+            var startX = parseInt((player.x / 32)) - 20;
             if(startX < 0){
                 startX = 0;
             }
 
-            var endX = parseInt((player.x / 32)) + 18;
+            var endX = parseInt((player.x / 32)) + 20;
             if(endX > floorMatrix.length[0] - 1){
                 endX = floorMatrix.length[0] - 1;
             }
 
-            var startY = parseInt((player.y / 32)) - 14;
+            var startY = parseInt((player.y / 32)) - 15;
             if(startY < 0){
                 startY = 0;
             }
 
-            var endY = parseInt((player.y / 32)) + 14;
+            var endY = parseInt((player.y / 32)) + 15;
             if(endY > floorMatrix.length - 1){
                 endY = floorMatrix.length - 1;
             }
