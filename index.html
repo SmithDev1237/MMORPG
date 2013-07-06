@@ -5,10 +5,21 @@
     <script src="scripts/pathfinding-browser.js"></script>
     <script src="scripts/rAF.js"></script>
     <script src="scripts/sprite.js"></script>
+    <link rel="stylesheet" type="text/css" href="stylesheets/screen.css">
     <title>Untitled Page</title>
 </head>
 <body>
-    <canvas width="1024px" height="672px" id="cnvGame" style="margin:50px; cursor:none"></canvas>
+    <div id="game-area">
+        <canvas width="1024px" height="672px" id="cnvGame" style="cursor:none"></canvas>
+        <div id="game-chat">             
+            <section>#### Welcome to Adventures of Hodor! ####</section>
+            <br/>
+            <section></section>
+            <section>13:44:33 - Noob2000: Hey guys, I am new. GIVE ME TEH GOLDZ!!!!!!!!!!</section>
+            <section>13:45:01 - Dave: I'm going to kill you with a knife</section>
+            <section>13:45:05 - Martin: Hello hippy scum!</section>
+        </div>
+    </div>
     <script>
 
         function Game(){
