@@ -10,7 +10,7 @@
 </head>
 <body>
     <div id="game-area">
-        <canvas width="1024px" height="672px" id="cnvGame" style="cursor:none"></canvas>
+        <canvas width="1024px" height="672px" id="cnvGame" style="cursor:none;"></canvas>
         <div id="game-chat">             
             <section>#### Welcome to Adventures of Hodor! ####</section>
             <br/>
@@ -19,6 +19,14 @@
             <section>13:45:01 - Dave: I'm going to kill you with a knife</section>
             <section>13:45:05 - Martin: Hello hippy scum!</section>
         </div>
+
+        <div id="login">
+            <span>Welcome, please login.</span><br>
+            <label for="name">Name: </label><input type="text" id="name"/><br>
+            <label for="pass">Password: </label><input type="password" id="pass"/><br>
+            <span id="status">Connecting...</span> <input type="button" value="Login" id="btnLogin"/>
+        </div>
+
     </div>
     <script>
 
@@ -567,6 +575,39 @@
             this.path = [];
             this.target = 1;
         }
+
+        $('#game-chat').hide();
+        $('#btnLogin').attr("disabled", true);
+
+        window.WebSocket = window.WebSocket || window.MozWebSocket;
+
+        var connection = new WebSocket('ws://localhost:1337/');
+
+        connection.onopen = function () {
+            // connection is opened and ready to use
+            console.log('Connected to server'); 
+            $('#status').text('Game status: Running');  
+            $('#btnLogin').attr("disabled", false);         
+        };
+
+        connection.onerror = function (error) {
+            // an error occurred when sending/receiving data
+            console.log('Failed to connect'); 
+            $('#status').text('Game status: Down');           
+        };
+
+        connection.onmessage = function (message) {
+            // try to decode json (I assume that each message from server is json)
+            try {
+                var json = JSON.parse(message.data);
+            } catch (e) {
+                console.log('This doesn\'t look like a valid JSON: ', message.data);
+                return;
+            }
+            // handle incoming message
+        };       
+
+
     </script>
 </body>
 </html>

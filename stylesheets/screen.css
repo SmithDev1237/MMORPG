@@ -67,15 +67,14 @@ article, aside, details, figcaption, figure, footer, header, hgroup, menu, nav, 
   display: block;
 }
 
-/* line 10, ../sass/screen.scss */
+/* line 11, ../sass/screen.scss */
 body {
   margin: auto;
   padding: 0px;
   text-align: center;
-  width: 1074px;
 }
 
-/* line 17, ../sass/screen.scss */
+/* line 18, ../sass/screen.scss */
 #game-area {
   margin: auto;
   position: relative;
@@ -83,13 +82,15 @@ body {
   -webkit-border-radius: 40px 40px;
   -moz-border-radius: 40px / 40px;
   border-radius: 40px / 40px;
+  width: 1024px;
 }
-/* line 21, ../sass/screen.scss */
+/* line 22, ../sass/screen.scss */
 #game-area canvas {
   margin-bottom: -3px;
+  background-image: url(../images/back.jpg);
 }
 
-/* line 29, ../sass/screen.scss */
+/* line 31, ../sass/screen.scss */
 #game-chat {
   position: absolute;
   margin: auto;
@@ -102,4 +103,18 @@ body {
   text-align: left;
   color: white;
   border-top: 3px solid black;
+}
+
+/* line 44, ../sass/screen.scss */
+#login {
+  width: 300px;
+  height: 150px;
+  background-color: white;
+  position: absolute;
+  left: 362px;
+  top: 300px;
+  border: 2px solid black;
+  -webkit-border-radius: 5px 5px;
+  -moz-border-radius: 5px / 5px;
+  border-radius: 5px / 5px;
 }
