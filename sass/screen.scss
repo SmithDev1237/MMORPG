@@ -49,5 +49,21 @@ body{
 	left:362px;
 	top:300px;
 	border:2px solid black;
-	@include border-radius(5px, 5px);
+	@include border-radius(5px, 5px);	
+}
+
+.title{
+	font-weight:bold;
+	padding:10px;
+	position:relative;
+}
+
+.inner{
+	position:relative;
+	padding:10px;
+
+	p{
+		text-align: right;
+		margin:10px;
+	}
 }

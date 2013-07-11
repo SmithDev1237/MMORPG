@@ -118,3 +118,21 @@ body {
   -moz-border-radius: 5px / 5px;
   border-radius: 5px / 5px;
 }
+
+/* line 55, ../sass/screen.scss */
+.title {
+  font-weight: bold;
+  padding: 10px;
+  position: relative;
+}
+
+/* line 61, ../sass/screen.scss */
+.inner {
+  position: relative;
+  padding: 10px;
+}
+/* line 65, ../sass/screen.scss */
+.inner p {
+  text-align: right;
+  margin: 10px;
+}
