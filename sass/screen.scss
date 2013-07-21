@@ -18,14 +18,17 @@ body{
 #game-area{
 	margin:auto;
 	position:relative;
+	border:25px solid black;
+	@include border-radius(40px, 40px);
+	width:1024px;
+	height:672px;
+	background-color:white;	
+	background-image:url(#{$imagePath}back.jpg);
+}
+
+#cnvGame{
+	margin-bottom: -3px;
 	
-		canvas{
-			margin-bottom: -3px;
-			background-image:url(#{$imagePath}back.jpg);
-		}
-		border:25px solid black;
-		@include border-radius(40px, 40px);
-		width:1024px;
 }
 
 #game-chat{
