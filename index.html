@@ -19,6 +19,9 @@
             <section>13:45:01 - Dave: I'm going to kill you with a knife</section>
             <section>13:45:05 - Martin: Hello hippy scum!</section>
         </div>
+        <div id="game-chat-input">
+            <input type="text" id="txtChat"/>
+        </div>
 
         <div id="login">
             <div class="inner">
@@ -76,32 +79,32 @@
         game.pointers.push(new Sprite("images/sword.png", 32, 32, 0, 0, 1, 0));        
 
         var spriteMap = [];
-        var pathMatrix = [];
+        //var pathMatrix = [];
         var matrix = [];
         var floorMatrix = [];
         var skyMatrix = [];
 
-        $.ajax({
-          url: "saves/save.txt"
-        }).done(function(data) {
-            data = $.parseJSON(data);
-            matrix = data.TerrainMatrix;
-            floorMatrix = data.FloorMatrix;
-            skyMatrix = data.SkyMatrix;
-            var tempSprites = data.Sprites;
+        // $.ajax({
+        //   url: "saves/save.txt"
+        // }).done(function(data) {
+        //     data = $.parseJSON(data);
+        //     matrix = data.TerrainMatrix;
+        //     floorMatrix = data.FloorMatrix;
+        //     skyMatrix = data.SkyMatrix;
+        //     var tempSprites = data.Sprites;
 
-            var noOfSprites = tempSprites.length;
+        //     var noOfSprites = tempSprites.length;
 
-            for(var i = 0; i < noOfSprites; i++){
+        //     for(var i = 0; i < noOfSprites; i++){
 
-                spriteMap.push([tempSprites[i][0], new Sprite(tempSprites[i][1][0], tempSprites[i][1][1], tempSprites[i][1][2], tempSprites[i][1][3], tempSprites[i][1][4], tempSprites[i][1][5], tempSprites[i][1][6])]);
-            }
-        });   
+        //         spriteMap.push([tempSprites[i][0], new Sprite(tempSprites[i][1][0], tempSprites[i][1][1], tempSprites[i][1][2], tempSprites[i][1][3], tempSprites[i][1][4], tempSprites[i][1][5], tempSprites[i][1][6])]);
+        //     }
+        // });   
         
-        game.player.name = "Martin";
-        game.player.level = 6;
-        game.player.x = 480;
-        game.player.y = 256;
+        // game.player.name = "Martin";
+        // game.player.level = 6;
+        // game.player.x = 480;
+        // game.player.y = 256;
         
         var bat1 = new Enemy();
         bat1.name = "Super Bat";
@@ -113,21 +116,21 @@
         var knight1 = new Enemy();
         knight1.name = "Guard";
         knight1.level = 9;
-        knight1.x = 350;
-        knight1.y = 410;
+        knight1.x = 542;
+        knight1.y = 250;
         knight1.sprites = knightSprite;
 
         var knight2 = new Enemy();
         knight2.name = "Guard";
         knight2.level = 9;
-        knight2.x = 414;
-        knight2.y = 410;
+        knight2.x = 606;
+        knight2.y = 250;
         knight2.sprites = knightSprite;
 
         var bat3 = new Enemy();
         bat3.name = "Super Bat";
         bat3.level = 2;
-        bat3.x = 640;
+        bat3.x = 800;
         bat3.y = 316;
         bat3.sprites = batSprite;
 
@@ -142,7 +145,7 @@
         var count = 0;  
         var canvas = document.getElementById('cnvGame');
         game.context = canvas.getContext('2d');
-        var finder = new PF.AStarFinder();
+        //var finder = new PF.AStarFinder();
 
         function startGame(){
 
@@ -150,12 +153,12 @@
             mapHeight = matrix.length;
 
             //pathMatrix = CreatePathmatrix(matrix); 
-            pathMatrix = matrix;
+            //pathMatrix = matrix;
 
             //var grid = new PF.Grid(mapwidth, mapHeight, pathMatrix);
             
-            finder.allowDiagonal = true;
-            finder.dontCrossCorners = true;
+            //finder.allowDiagonal = true;
+            //finder.dontCrossCorners = true;
             //window.setInterval(drawGame, 15);
             main();
         }            
@@ -250,10 +253,23 @@
 
         function getPath(relX, relY){
 
-            grid = new PF.Grid(mapwidth, mapHeight, pathMatrix);
-            game.player.path = finder.findPath(parseInt(game.player.x / 32), parseInt(game.player.y / 32), relX, relY, grid);   
-            game.player.path.reverse();
-            game.player.path.pop();       
+            // grid = new PF.Grid(mapwidth, mapHeight, pathMatrix);
+            // game.player.path = finder.findPath(parseInt(game.player.x / 32), parseInt(game.player.y / 32), relX, relY, grid);   
+            // game.player.path.reverse();
+            // game.player.path.pop();   
+
+            var data = {
+                'cmd': 'move',
+                'name': game.player.name,
+                'x': parseInt(game.player.x / 32),
+                'y': parseInt(game.player.y / 32),
+                'moveToX': relX,
+                'moveToY': relY,
+            }
+
+            jsonData = JSON.stringify(data);
+
+            connection.send(jsonData);    
            
         }
 
@@ -270,44 +286,44 @@
 
           
 
-        function CreatePathmatrix(_matrix){
+        // function CreatePathmatrix(_matrix){
 
-            var maxY = _matrix.length;
-            var maxX = _matrix[0].length;
-            var tempPathMatrix = [];
+        //     var maxY = _matrix.length;
+        //     var maxX = _matrix[0].length;
+        //     var tempPathMatrix = [];
 
-            for(var i = 0; i < maxY; i++){
+        //     for(var i = 0; i < maxY; i++){
 
-                var tempArray = [];
+        //         var tempArray = [];
 
-                for(var n = 0; n < maxX; n++){ 
+        //         for(var n = 0; n < maxX; n++){ 
 
-                    tempArray.push(_matrix[i][n]);
-                }
+        //             tempArray.push(_matrix[i][n]);
+        //         }
 
-                tempPathMatrix.push(tempArray);
-            }
+        //         tempPathMatrix.push(tempArray);
+        //     }
 
-            for(var i = 0; i < maxY; i++){
+        //     for(var i = 0; i < maxY; i++){
 
-                for(var n = 0; n < maxX; n++){                    
+        //         for(var n = 0; n < maxX; n++){                    
 
-                    if(_matrix[i][n] == 0){                        
+        //             if(_matrix[i][n] == 0){                        
 
-                        if((n + 1 < maxX && _matrix[i][n + 1] != 0)){
+        //                 if((n + 1 < maxX && _matrix[i][n + 1] != 0)){
 
-                            tempPathMatrix[i][n] = 1;
-                        }                        
-                    }
-                    else{
+        //                     tempPathMatrix[i][n] = 1;
+        //                 }                        
+        //             }
+        //             else{
 
-                        //tempPathMatrix[i][n] = 0;
-                    }
-                }
-            }
+        //                 //tempPathMatrix[i][n] = 0;
+        //             }
+        //         }
+        //     }
 
-            return tempPathMatrix;
-        }   
+        //     return tempPathMatrix;
+        // }   
 
         function StateUpdate(dt){
 
@@ -581,6 +597,7 @@
         }
 
         $('#game-chat').hide();
+        $('#cnvGame').hide();
         $('#btnLogin').attr("disabled", true);
 
         window.WebSocket = window.WebSocket || window.MozWebSocket;
@@ -604,12 +621,97 @@
             // try to decode json (I assume that each message from server is json)
             try {
                 var json = JSON.parse(message.data);
+
+                switch(json.cmd){
+
+                    case 'login-response':
+
+                        game.player.name = json.name;
+                        game.player.level = json.level;
+                        game.player.x = json.x;
+                        game.player.y = json.y;
+                        var mapData = json.mapData;
+
+                        matrix = mapData.TerrainMatrix;
+                        floorMatrix = mapData.FloorMatrix;
+                        skyMatrix = mapData.SkyMatrix;
+                        var tempSprites = mapData.Sprites;
+
+                        var noOfSprites = tempSprites.length;
+
+                        for(var i = 0; i < noOfSprites; i++){
+
+                            spriteMap.push([tempSprites[i][0], new Sprite(tempSprites[i][1][0], tempSprites[i][1][1], tempSprites[i][1][2], tempSprites[i][1][3], tempSprites[i][1][4], tempSprites[i][1][5], tempSprites[i][1][6])]);
+                        }
+
+                        $("#game-chat").fadeIn('slow');
+                        $("#login").fadeOut('slow');
+                        $('#cnvGame').fadeIn('slow');
+                        $('#game-area').css('background-image', 'none');
+
+                        startGame();
+                        break;
+
+                    case 'move-response':
+
+                        game.player.path = json.path;
+                        break;
+
+                    case 'chat-response':
+                        
+                        var date = new Date();
+                        $('#game-chat').append("<section>" + date.timeNow() + " - " + json.name + ": " + json.message + "</section>");
+                        break;
+                }
+
+                
+
             } catch (e) {
                 console.log('This doesn\'t look like a valid JSON: ', message.data);
                 return;
             }
             // handle incoming message
-        };       
+        };  
+
+        Date.prototype.timeNow = function(){ 
+            return ((this.getHours() < 10)?"0":"") + this.getHours() +":"+
+                   ((this.getMinutes() < 10)?"0":"") + this.getMinutes() +":"+ 
+                   ((this.getSeconds() < 10)?"0":"") + this.getSeconds(); 
+        }; 
+
+        $("#btnLogin").click(function(){
+
+            var login = {
+                'cmd': 'login',
+                'name': 'Martin',
+                'pass': 'Timmy'
+            }
+
+            jsonData = JSON.stringify(login);
+
+            connection.send(jsonData);
+        });
+
+        
+        $('#txtChat').bind("enterKey",function(e){
+           
+           var login = {
+                'cmd': 'chat',
+                'name': game.player.name,
+                'message': $(this).val()
+            }
+
+            jsonData = JSON.stringify(login);
+
+            connection.send(jsonData);
+        });
+
+        $('#txtChat').keyup(function(e){
+            if(e.keyCode == 13)
+            {
+              $(this).trigger("enterKey");
+            }
+        });
 
 
     </script>

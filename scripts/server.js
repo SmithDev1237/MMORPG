@@ -3,10 +3,10 @@
  
 // Optional. You will see this name in eg. 'ps' or 'top' command
 process.title = 'node-chat';
- 
 // Port where we'll run the websocket server
 var webSocketsServerPort = 1337;
- 
+var PF = require('pathfinding');
+var $ = require('jquery');
 // websocket and http servers
 var webSocketServer = require('websocket').server;
 var http = require('http');
@@ -19,6 +19,15 @@ var history = [ ];
 // list of currently connected clients (users)
 var clients = [ ];
  
+var spriteMap = [];
+var pathMatrix = [];
+var matrix = [];
+var floorMatrix = [];
+var skyMatrix = [];
+var mapData = [];
+var finder = new PF.AStarFinder();
+var mapwidth;
+var mapHeight;
 /**
  * Helper function for escaping input strings
  */
@@ -50,73 +59,110 @@ var wsServer = new webSocketServer({
     // an enhanced HTTP request. For more info http://tools.ietf.org/html/rfc6455#page-6
     httpServer: server
 });
+
+// Load map data
+try{
+    LoadMapData();
+    console.log(spriteMap);
+    console.log((new Date()) + ' Loaded map data.');
+}
+catch(e){
+    console.log((new Date()) + ' Failed to load map data.');
+}
  
 // This callback function is called every time someone
 // tries to connect to the WebSocket server
 wsServer.on('request', function(request) {
-    console.log((new Date()) + ' Connection from origin ' + request.origin + '.');
- 
-    // accept connection - you should check 'request.origin' to make sure that
-    // client is connecting from your website
-    // (http://en.wikipedia.org/wiki/Same_origin_policy)
-    var connection = request.accept(null, request.origin); 
-    // we need to know client index to remove them on 'close' event
+    console.log((new Date()) + ' Connection from origin ' + request.origin + '.');  
+    console.log((new Date()) + ' Connection accepted.');       
+    var connection = request.accept(null, request.origin);
     var index = clients.push(connection) - 1;
-    var userName = false;
-    var userColor = false;
- 
-    console.log((new Date()) + ' Connection accepted.');
- 
-    // send back chat history
-    if (history.length > 0) {
-        connection.sendUTF(JSON.stringify( { type: 'history', data: history} ));
-    }
- 
     // user sent some message
     connection.on('message', function(message) {
         if (message.type === 'utf8') { // accept only text
-            if (userName === false) { // first message sent by user is their name
-                // remember user name
-                userName = htmlEntities(message.utf8Data);
-                // get random color and send it back to the user
-                userColor = colors.shift();
-                connection.sendUTF(JSON.stringify({ type:'color', data: userColor }));
-                console.log((new Date()) + ' User is known as: ' + userName
-                            + ' with ' + userColor + ' color.');
- 
-            } else { // log and broadcast the message
-                console.log((new Date()) + ' Received Message from '
-                            + userName + ': ' + message.utf8Data);
-                
-                // we want to keep history of all sent messages
-                var obj = {
-                    time: (new Date()).getTime(),
-                    text: htmlEntities(message.utf8Data),
-                    author: userName,
-                    color: userColor
-                };
-                history.push(obj);
-                history = history.slice(-100);
- 
-                // broadcast message to all connected clients
-                var json = JSON.stringify({ type:'message', data: obj });
-                for (var i=0; i < clients.length; i++) {
-                    clients[i].sendUTF(json);
-                }
+            
+            var data = JSON.parse(message.utf8Data);
+            
+            switch(data.cmd){
+
+                case 'login':
+                    console.log(data.name + " logged in");
+                    var gameData = {
+                        'cmd':      'login-response',
+                        'name':     'Martin',
+                        'level':    6,
+                        'x':        512,
+                        'y':        288,
+                        'mapData':  mapData                        
+                    }
+                    connection.sendUTF(JSON.stringify(gameData));
+                    break;
+
+                case 'move':
+
+                    var grid = new PF.Grid(mapwidth, mapHeight, pathMatrix);
+                    var path = finder.findPath(data.x, data.y, data.moveToX, data.moveToY, grid);   
+                    path.reverse();
+                    path.pop();   
+
+                    var gameData = {
+                        'cmd':  'move-response',
+                        'path': path
+                    }
+
+                    connection.sendUTF(JSON.stringify(gameData));
+                    console.log(data.name + " moving to X:" + data.moveToX + ", Y:" + data.moveToY);
+                    break;
+
+                case 'chat':
+
+                    var gameData = {
+                        'cmd':  'chat-response',
+                        'name': data.name,
+                        'message': data.message
+                    }
+
+                    var numClients = clients.length;
+
+                    for (var i = 0; i < numClients; i++) {
+                        clients[i].sendUTF(JSON.stringify(gameData));
+                    }
+                    console.log((new Date()) + " - " + data.name + ": "+ data.message);
+                    break;
             }
+
+            
         }
     });
  
     // user disconnected
     connection.on('close', function(connection) {
-        if (userName !== false && userColor !== false) {
+        
             console.log((new Date()) + " Peer "
-                + connection.remoteAddress + " disconnected.");
-            // remove user from the list of connected clients
+                + connection.remoteAddress + " disconnected."); 
             clients.splice(index, 1);
-            // push back user's color to be reused by another user
-            colors.push(userColor);
-        }
     });
  
 });
+
+
+
+function LoadMapData(){    
+
+    var fs = require('fs');
+    fs.readFile( __dirname + '/saves/save.txt', function (err, data) {
+        if (err) {
+            throw err; 
+        }
+      
+        mapData = $.parseJSON(data.toString());        
+        matrix = mapData.TerrainMatrix;
+        floorMatrix = mapData.FloorMatrix;
+        skyMatrix = mapData.SkyMatrix; 
+        mapwidth = matrix[0].length;
+        mapHeight = matrix.length;
+        pathMatrix = matrix;
+        finder.allowDiagonal = true;
+        finder.dontCrossCorners = true;       
+    });    
+} 
