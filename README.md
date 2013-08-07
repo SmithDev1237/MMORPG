@@ -11,7 +11,7 @@ startGame();
 Nodejs Modules
 --------------
 
-*jQuery
-*websocket
-*pathfinding
-*bindings
+* jQuery
+* websocket
+* pathfinding
+* bindings
