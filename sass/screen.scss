@@ -35,13 +35,27 @@ body{
 	position:absolute;
 	margin:auto;
 	height:100px;
-	bottom:0px;
+	bottom:24px;
 	background-color:black;
 	width:1024px;
 	@include opacity(.7);
 	text-align:left;
 	color:white;
 	border-top:3px solid black;
+	overflow-y: scroll;
+}
+
+#txtChat{
+	position:absolute;
+	bottom:0px;
+	left:0px;
+	width:1021px;
+	height:20px;
+	background-color:black;
+	@include opacity(.7);
+	border-top:2px solid white;
+	color:white;
+	font-weight:bold;
 }
 
 #login{
@@ -67,6 +81,6 @@ body{
 
 	p{
 		text-align: right;
-		margin:10px;
+		margin:5px;
 	}
 }

@@ -19,6 +19,9 @@
             <section>13:45:01 - Dave: I'm going to kill you with a knife</section>
             <section>13:45:05 - Martin: Hello hippy scum!</section>
         </div>
+        <div id="game-chat-input">
+            <input type="text" id="txtChat"/>
+        </div>
 
         <div id="login">
             <div class="inner">
@@ -257,7 +260,7 @@
 
             var data = {
                 'cmd': 'move',
-                'name': 'Martin',
+                'name': game.player.name,
                 'x': parseInt(game.player.x / 32),
                 'y': parseInt(game.player.y / 32),
                 'moveToX': relX,
@@ -653,6 +656,12 @@
 
                         game.player.path = json.path;
                         break;
+
+                    case 'chat-response':
+                        
+                        var date = new Date();
+                        $('#game-chat').append("<section>" + date.timeNow() + " - " + json.name + ": " + json.message + "</section>");
+                        break;
                 }
 
                 
@@ -662,7 +671,13 @@
                 return;
             }
             // handle incoming message
-        };   
+        };  
+
+        Date.prototype.timeNow = function(){ 
+            return ((this.getHours() < 10)?"0":"") + this.getHours() +":"+
+                   ((this.getMinutes() < 10)?"0":"") + this.getMinutes() +":"+ 
+                   ((this.getSeconds() < 10)?"0":"") + this.getSeconds(); 
+        }; 
 
         $("#btnLogin").click(function(){
 
@@ -675,6 +690,27 @@
             jsonData = JSON.stringify(login);
 
             connection.send(jsonData);
+        });
+
+        
+        $('#txtChat').bind("enterKey",function(e){
+           
+           var login = {
+                'cmd': 'chat',
+                'name': game.player.name,
+                'message': $(this).val()
+            }
+
+            jsonData = JSON.stringify(login);
+
+            connection.send(jsonData);
+        });
+
+        $('#txtChat').keyup(function(e){
+            if(e.keyCode == 13)
+            {
+              $(this).trigger("enterKey");
+            }
         });
 
 

@@ -76,6 +76,7 @@ wsServer.on('request', function(request) {
     console.log((new Date()) + ' Connection from origin ' + request.origin + '.');  
     console.log((new Date()) + ' Connection accepted.');       
     var connection = request.accept(null, request.origin);
+    var index = clients.push(connection) - 1;
     // user sent some message
     connection.on('message', function(message) {
         if (message.type === 'utf8') { // accept only text
@@ -110,6 +111,23 @@ wsServer.on('request', function(request) {
                     }
 
                     connection.sendUTF(JSON.stringify(gameData));
+                    console.log(data.name + " moving to X:" + data.moveToX + ", Y:" + data.moveToY);
+                    break;
+
+                case 'chat':
+
+                    var gameData = {
+                        'cmd':  'chat-response',
+                        'name': data.name,
+                        'message': data.message
+                    }
+
+                    var numClients = clients.length;
+
+                    for (var i = 0; i < numClients; i++) {
+                        clients[i].sendUTF(JSON.stringify(gameData));
+                    }
+                    console.log((new Date()) + " - " + data.name + ": "+ data.message);
                     break;
             }
 
@@ -122,7 +140,7 @@ wsServer.on('request', function(request) {
         
             console.log((new Date()) + " Peer "
                 + connection.remoteAddress + " disconnected."); 
-        
+            clients.splice(index, 1);
     });
  
 });
