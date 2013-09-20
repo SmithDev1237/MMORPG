@@ -568,6 +568,11 @@
             game.pointers[game.pointerPos].setPosition(pointerX, pointerY);
             game.pointers[game.pointerPos].animate(context, game.timer);        
             game.pointers[game.pointerPos].draw(context); 
+
+            context.textAlign = "center"; 
+            context.fillStyle = "white";
+            context.font = "Bold 18px sans-serif";
+            context.fillText("Health: " + player.health, 60,20);
                       
         }
 
@@ -681,9 +686,10 @@
 
         $("#btnLogin").click(function(){
 
+            var username = $('#name').val();
             var login = {
                 'cmd': 'login',
-                'name': 'Martin',
+                'name': username,
                 'pass': 'Timmy'
             }
 

@@ -89,7 +89,7 @@ wsServer.on('request', function(request) {
                     console.log(data.name + " logged in");
                     var gameData = {
                         'cmd':      'login-response',
-                        'name':     'Martin',
+                        'name':     data.name,
                         'level':    6,
                         'x':        512,
                         'y':        288,
