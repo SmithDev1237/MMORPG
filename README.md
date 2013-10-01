@@ -3,9 +3,9 @@ MMORPG
 
 A HTML 5 mmorpg I am working on.
 
-Run the following in the browser developer console to start game.
+You will need to startup the game server before playing, this can be found in the scripts folder.
 ```javascript
-startGame();
+node server.js;
 ```
 
 Nodejs Modules
