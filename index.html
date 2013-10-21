@@ -6,6 +6,7 @@
     <script src="scripts/rAF.js"></script>
     <script src="scripts/sprite.js"></script>
     <link rel="stylesheet" type="text/css" href="stylesheets/screen.css">
+    <link rel="stylesheet" type="text/css" href="stylesheets/font-awesome.min.css">
     <title>Untitled Page</title>
 </head>
 <body>
@@ -570,9 +571,9 @@
             game.pointers[game.pointerPos].draw(context); 
 
             context.textAlign = "center"; 
-            context.fillStyle = "white";
-            context.font = "Bold 18px sans-serif";
-            context.fillText("Health: " + player.health, 60,20);
+            context.fillStyle = "red";
+            context.font = "Bold 18px FontAwesome";
+            context.fillText("Health: " + player.health + " \uF004", 60,20);
                       
         }
 
