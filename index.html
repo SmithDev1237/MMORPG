@@ -570,12 +570,30 @@
             game.pointers[game.pointerPos].animate(context, game.timer);        
             game.pointers[game.pointerPos].draw(context); 
 
-            context.textAlign = "center"; 
-            context.fillStyle = "red";
-            context.font = "Bold 18px FontAwesome";
-            context.fillText("Health: " + player.health + " \uF004", 60,20);
+            
+
+            statusItem(context, "\uF004", player.health, 0,0, "red");
+
+            //"\uF155"
+            statusItem(context, "\uF155", 50, 100,0, "yellow");
                       
         }
+
+        function statusItem(ctx, icon, message, x,y, color){
+
+            ctx.beginPath();
+            ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+            ctx.rect(x,y,100,28);
+            ctx.fill();
+            ctx.textAlign = "center"; 
+            ctx.fillStyle = color;
+            ctx.font = "Bold 18px FontAwesome";
+            ctx.fillText(icon, x + 20,y + 20);
+            ctx.fillStyle = "white";
+            ctx.font = "Bold 18px sans-serif";
+            ctx.fillText(message, x + 45,y+20);
+        }
+
 
         function Player(){
 
