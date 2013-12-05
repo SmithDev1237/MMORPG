@@ -10,9 +10,10 @@ node server.js;
 
 Nodejs Modules
 --------------
-
-* jQuery
-```cmd
+```javascript
+npm install jquery
+```
+```javascript
 npm install websocket
 ```
 ```javascript
