@@ -12,7 +12,9 @@ Nodejs Modules
 --------------
 
 * jQuery
-* websocket
+```cmd
+npm install websocket
+```
 ```javascript
 npm install pathfinding
 ```
