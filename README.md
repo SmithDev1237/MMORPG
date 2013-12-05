@@ -13,5 +13,7 @@ Nodejs Modules
 
 * jQuery
 * websocket
-* pathfinding
+```javascript
+npm install pathfinding
+```
 * bindings
