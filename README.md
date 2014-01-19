@@ -10,8 +10,13 @@ node server.js;
 
 Nodejs Modules
 --------------
-
-* jQuery
-* websocket
-* pathfinding
+```javascript
+npm install jquery
+```
+```javascript
+npm install websocket
+```
+```javascript
+npm install pathfinding
+```
 * bindings
